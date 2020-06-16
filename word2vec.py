@@ -58,7 +58,7 @@ class word2vec:
                 if batch_num % 3000 == 0:
                     end = time.time()
                     print('epoch,batch = %2d %5d:   pair/sec = %4.2f  loss = %4.3f\r'
-                          % (epoch, batch_num, (batch_num - batch_new)*self.batch_size/(end-start), loss.data[0]), end="\n")
+                          % (epoch, batch_num, (batch_num - batch_new)*self.batch_size/(end-start), loss.item()), end="\n")
                     batch_new = batch_num
                     start = time.time()
                 batch_num += 1
