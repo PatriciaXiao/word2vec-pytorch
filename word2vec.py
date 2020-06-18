@@ -68,7 +68,8 @@ class word2vec:
 
 if __name__ == '__main__':
     # w2v = word2vec('text8', 'SkipGram')
-    w2v = word2vec('toy', 'SkipGram')
+    # w2v = word2vec('toy', 'SkipGram')
+    w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
     w2v.train()
 
 
