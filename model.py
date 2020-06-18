@@ -39,10 +39,7 @@ class SkipGram(nn.Module):
         neg_output = F.logsigmoid(-1*neg_score).squeeze() #1-sigma(x)=sigma(-x)
 
         cost = pos_output + neg_output
-        print(u_pos.shape)
-        print(batch_size)
-        print(embed_u.shape)
-        exit(0)
+        
         return -1 * cost.sum() / batch_size
 
     def save_embeddings(self, id2word, file_name, use_cuda):
