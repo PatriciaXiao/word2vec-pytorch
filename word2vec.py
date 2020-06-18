@@ -57,8 +57,8 @@ class word2vec:
 
                 if batch_num % 3000 == 0:
                     end = time.time()
-                    print('epoch,batch = %2d %5d:   pair/sec = %4.2f  loss = %4.3f\r'
-                          % (epoch, batch_num, (batch_num - batch_new)*self.batch_size/(end-start), loss.item()), end="\n")
+                    print('epoch,batch = %2d %5d:   batch_size = %5d  loss = %4.3f\r'
+                          % (epoch, batch_num, self.batch_size, loss.item()), end="\n")
                     batch_new = batch_num
                     start = time.time()
                 batch_num += 1
@@ -68,8 +68,8 @@ class word2vec:
 
 if __name__ == '__main__':
     # w2v = word2vec('text8', 'SkipGram')
-    # w2v = word2vec('toy', 'SkipGram')
-    w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
+    w2v = word2vec('toy', 'SkipGram')
+    # w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
     w2v.train()
 
 
