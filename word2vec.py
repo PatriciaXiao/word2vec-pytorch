@@ -40,9 +40,9 @@ class word2vec:
             while self.op.process:
                 pos_u, pos_v, neg_v = self.op.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
 
-                pos_u = Variable(torch.LongTensor(pos_u))
-                pos_v = Variable(torch.LongTensor(pos_v))
-                neg_v = Variable(torch.LongTensor(neg_v))
+                pos_u = torch.LongTensor(pos_u)
+                pos_v = torch.LongTensor(pos_v)
+                neg_v = torch.LongTensor(neg_v)
 
 
                 if torch.cuda.is_available():
