@@ -43,6 +43,13 @@ class word2vec:
             while self.data.process:
                 pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
 
+                '''
+                print(pos_u.shape) # (2560,)
+                print(pos_v.shape) # (2560,)
+                print(neg_v.shape) # (2560, 10)
+                exit(0)
+                '''
+
                 pos_u = torch.LongTensor(pos_u)
                 pos_v = torch.LongTensor(pos_v)
                 neg_v = torch.LongTensor(neg_v)
