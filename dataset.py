@@ -8,7 +8,7 @@ from six.moves import xrange
 
 data_index = 0
 
-class Options(object):
+class Dataset(object):
     def __init__(self, data_file, vocab_size):
         self.vocab_size = vocab_size
         self.save_path = ''
