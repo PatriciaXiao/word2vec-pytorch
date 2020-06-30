@@ -19,10 +19,14 @@ class SkipGram(nn.Module):
         super(SkipGram, self).__init__()
         self.u_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
         self.v_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
+        '''
         self.embedding_dim = embedding_dim
         initrange = 0.5 / self.embedding_dim
         self.u_embeddings.weight.data.uniform_(-initrange, initrange)
         self.v_embeddings.weight.data.uniform_(-0, 0)
+        '''
+        nn.init.normal_(self.u_embedding.weight, std=1.0 / math.sqrt(embedding_dim))
+        nn.init.normal_(self.v_embedding.weight, std=1.0 / math.sqrt(embedding_dim))
 
     def forward(self, u_pos, v_pos, v_neg, batch_size):
         embed_u = self.u_embeddings(u_pos)
@@ -39,10 +43,6 @@ class SkipGram(nn.Module):
         neg_output = F.logsigmoid(-1*neg_score).squeeze() #1-sigma(x)=sigma(-x)
 
         cost = pos_output + neg_output
-        print(u_pos.shape)
-        print(batch_size)
-        print(embed_u.shape)
-        exit(0)
         return -1 * cost.sum() / batch_size
 
     def save_embeddings(self, id2word, file_name, use_cuda):
