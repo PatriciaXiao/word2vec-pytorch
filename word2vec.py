@@ -7,6 +7,9 @@ import torch.optim as optim
 from model import SkipGram, CBOW
 from preprocess_data import Options
 
+import random
+import numpy as np
+
 
 class word2vec:
     def __init__(self, input_file, model_name, vocabulary_size=100000,
@@ -67,6 +70,14 @@ class word2vec:
 
 
 if __name__ == '__main__':
+
+    fixed_seed = 1
+    if fixed_seed is not None:
+        torch.manual_seed(fixed_seed)
+        random.seed(fixed_seed)
+        np.random.seed(fixed_seed)
+        torch.cuda.manual_seed(fixed_seed)
+
     # w2v = word2vec('text8', 'SkipGram')
     w2v = word2vec('toy', 'SkipGram')
     # w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
