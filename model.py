@@ -26,8 +26,8 @@ class SkipGram(nn.Module):
         self.u_embeddings.weight.data.uniform_(-initrange, initrange)
         self.v_embeddings.weight.data.uniform_(-0, 0)
         '''
-        nn.init.normal_(self.u_embeddings.weight, std=1.0 / math.sqrt(embedding_dim))
-        nn.init.normal_(self.v_embeddings.weight, std=1.0 / math.sqrt(embedding_dim))
+        nn.init.normal_(self.u_embeddings.weight, std=1.0 / math.sqrt(self.embedding_dim))
+        nn.init.normal_(self.v_embeddings.weight, std=1.0 / math.sqrt(self.embedding_dim))
 
     def forward(self, u_pos, v_pos, v_neg, batch_size):
         embed_u = self.u_embeddings(u_pos)
