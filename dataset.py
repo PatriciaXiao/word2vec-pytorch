@@ -5,115 +5,164 @@ import os
 import random
 import time
 from six.moves import xrange
+from utils import *
 
-data_index = 0
+class PairedDataset:
+    def __init__(self, text_group1, text_group2, group_names=("democratic", "democratic"), partition=[.8, .1, .1], vocab_size_limit = 0, max_seq_length=200, sentence_labels=[-1,1]):
+        # check validity
+        if len(group_names) != 2: # republican
+            error("wrong group names")
+        if sum(partition) != 1:
+            error("partitions sum not correct")
 
-class Dataset(object):
-    def __init__(self, data_file, vocab_size):
-        self.vocab_size = vocab_size
-        self.save_path = ''
-        self.vocab = self.read_data(data_file)
-        data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        self.train_data = self.subsampling(data_idx)
-        self.sample_table = self.init_sample_table()
-        self.save_vocab()
+        self.group_names = group_names
+        self.sentence_labels = sentence_labels
+        self.max_seq_length = max_seq_length
 
-    def read_data(self, data_file):
-        with open(data_file) as f:
-            data = f.read().split()
-            data = [x for x in data if x != 'eoood']
-        return data
+        sentences_sets1 = self.parse_sentences(text_group1, partition) # democratic set
+        sentences_sets2 = self.parse_sentences(text_group2, partition) # republican set
+        # the words
+        train_raw_data = [sentences_sets1[0], sentences_sets2[0]]
+        valid_raw_data = [sentences_sets1[1], sentences_sets2[1]]
+        tests_raw_data = [sentences_sets1[2], sentences_sets2[2]]
 
-    def build_dataset(self, words, n_words):
-        count = [['UNK', -1]]
-        count.extend(collections.Counter(words).most_common(n_words - 1))
-        dictionary = dict()
+        # the vocabulary
+        text = flatten3d(train_raw_data) # + flatten3d(self.valid_raw_data) + flatten3d(self.tests_raw_data)
+        counter = collections.Counter(text)
+        if vocab_size_limit <= 0:
+            vocab_size_limit = len(text)
+        word_cntdict = dict(counter.most_common(vocab_size_limit))
+        token_length = len(text)
+        frequent_words = list(word_cntdict.keys())
+        self.vocab = ["<UNK>"] + frequent_words
+        self.vocab_size = len(self.vocab)
 
-        #build dictionary，the higher word frequency is, the top word is
-        for word, _ in count:
-            dictionary[word] = len(dictionary)
+        self.index_range = list(range(self.vocab_size))
+        self.count = np.array([token_length - sum(word_cntdict.values())] + list(word_cntdict.values()))
+        # probability of sampling the environment words
+        tmp = self.count ** .75
+        self.prob_sampled = tmp / sum(tmp)
+        self.drop_prob_dict = self.get_drop_prob_dict(token_length)
 
-        data = list()
-        unk_count = 0
+        # the dictionary
+        self.w2i = {w: i for i, w in enumerate(self.vocab)}
+        self.i2w = {i: w for i, w in enumerate(self.vocab)}
 
-        #dataset labelled
-        for word in words:
-            if word in dictionary:
-                index = dictionary[word]
-            else:
-                index = 0
-                unk_count += 1
-            data.append(index)
+        # the indexes
+        self.train_data = [[list(map(self.get_index, sentence)) for sentence in raw_data] for raw_data in train_raw_data]
+        self.valid_data = [[list(map(self.get_index, sentence)) for sentence in raw_data] for raw_data in valid_raw_data]
+        self.tests_data = [[list(map(self.get_index, sentence)) for sentence in raw_data] for raw_data in tests_raw_data]
+        self.text_dict = {
+                "train": self.train_data,
+                "valid": self.valid_data,
+                "tests": self.tests_data
+            }
 
-        count[0][1] = unk_count
-        reversed_dict = dict(zip(dictionary.values(), dictionary.keys()))
-        return data, count, reversed_dict
+    def padding(self, sentence):
+        len_sentence = len(sentence)
+        if len_sentence >= self.max_seq_length:
+            return sentence[:max_seq_length]
+        else:
+            return sentence[:] + [0] * (self.max_seq_length - len_sentence)
 
-    #high frequency word subsampled
-    #randomly discard common words, and keep the same frequency ranking
-    def subsampling(self, data):
-        count = [c[1] for c in self.count]
-        frequency = count / np.sum(count)
-        prob = dict()
+    def get_drop_prob_dict(self, token_length):
+        drop_prob = 1 - np.sqrt(1e-5 * token_length / self.count)
+        drop_prob[np.isneginf(drop_prob)] = 1.
+        return dict(zip(self.index_range, drop_prob))
 
-        #calculate discard probability
-        for idx, x in enumerate(frequency):
-            y = (math.sqrt(x / 0.001) + 1) * 0.001 / x
-            prob[idx] = y
-        subsampled_data = list()
-        for word in data:
-            if random.random() < prob[word]:
-                subsampled_data.append(word)
-        return subsampled_data
 
-    def init_sample_table(self):
-        count = [ c[1] for c in self.count]
-        pow_freq = np.array(count) ** 0.75
-        pow_sum = np.sum(pow_freq)
-        ratio = pow_freq / pow_sum
+    def parse_sentences(self, text, partition):
+        raw_sentences = [self.parse_tokens(sentence) for sentence in text.split("\n")]
+        nonempty = [s for s in raw_sentences if len(s) > 0] # nonempty sentences are kept
+        len_all = len(nonempty)
+        len_train = int(partition[0] * len_all)
+        len_valid = int(partition[1] * len_all)
+        return nonempty[:len_train], nonempty[len_train:len_train+len_valid], nonempty[len_train+len_valid:]
 
-        table_size = 1e8
-        count = np.round(ratio * table_size)
-        sample_table = []
 
-        for idx, x in enumerate(count):
-            sample_table += [idx] * int(x)
-        return np.array(sample_table)
+    def parse_tokens(self, sentence):
+        raw_sentence = [w.replace('\x01', ' ') for w in sentence.split()]
+        return [w for w in raw_sentence if len(w) > 0] # nonempty words are kept
 
-    def save_vocab(self):
-        with open(os.path.join(self.save_path, 'vocab.txt'), 'w') as f:
-            for i in xrange(len(self.count)):
-                vocab_word = self.idx2word[i]
-                f.write('%s %d\n' % (vocab_word, self.count[i][1]))
+    def prepare_text(self, mode="tests", labels=[-1, 1]):
+        '''
+        prepare text for samplers
+        '''
+        options = ["train", "valid", "tests"]
+        if mode not in options:
+            error("options ({}) aren't including {}".format(options, mode))
+        raw_data = self.text_dict[mode]
+        labels = np.array([self.sentence_labels[0]] * len(raw_data[0]) + [self.sentence_labels[1]] * len(raw_data[1]))
+        text_data = np.array(flatten2d(raw_data))
+        # add some randomness
+        shuffled_index = list(range(len(labels)))
+        random.shuffle(shuffled_index)
+        text_data = text_data[shuffled_index]
+        labels = labels[shuffled_index]
+        return text_data, labels
 
-    def generate_batch(self, window_size, batch_size, neg_sample_size):
-        data = self.train_data
-        global data_index
+    def get_random_word(self, items=1):
+        # the real word, example: "process"
+        # return random.sample(self.vocab[1:], 1)[0]
+        return random.choices(self.vocab[1:], weights=self.prob_sampled[1:], k=items)
 
-        span = 2 * window_size + 1
-        context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
-        labels = np.ndarray(shape=(batch_size), dtype=np.int64)
-        if data_index + span > len(data):
-            data_index = 0
-            self.process = False
+    def get_random_index(self, items=1):
+        # return random.randint(1, self.vocab_size)
+        return random.choices(self.index_range[1:], weights=self.prob_sampled[1:], k=items)
 
-        buffer = data[data_index : data_index + span]
-        pos_u = []
-        pos_v = []
-        for i in range(batch_size):
-            context[i, :] = buffer[:window_size] + buffer[window_size+1:]
-            labels[i] = buffer[window_size]
-            for j in range(span - 1):
-                pos_u.append(labels[i])
-                pos_v.append(context[i, j])
+    def get_index(self, word):
+        return self.w2i.get(word, 0)
 
-            data_index += 1
-            if data_index + span > len(data):
-                buffer = data[:span]
-                data_index = 0
-                self.process = False
-            else:
-                buffer = data[data_index : data_index + span]
-        neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
-        return np.array(pos_u), np.array(pos_v), neg_v
+# sampler
+class Dataset:
+    def __init__(self, batch_size=1, window_size=2, word_pair_labels=[-1,1], drop=False):
+        dataset = PairedDataset(text_group1=open("toy", encoding="utf8").read(), \
+                                text_group2=open("toy", encoding="utf8").read())
+        self.dataset = dataset
+        self.window_size = window_size
+        self.neg_sample_rate = 4.
+        self.word_pair_labels = word_pair_labels
+        self.batch_size = batch_size
+        self.drop = drop is not False
 
+        self.sampler = self.generate_batch
+
+        self.idx2word = self.dataset.i2w
+
+    def __call__(self, mode="tests", **kwargs):
+        return self.sampler(mode, **kwargs)
+
+    def generate_batch(self, mode="train"):
+        sentence_text = list()
+        sentence_labels = list()
+        pos_u = list()
+        pos_v = list()
+        neg_v = list()
+        current_text, current_labels = self.dataset.prepare_text(mode) # label is party label
+        for batch_id, (text, polarity_label) in enumerate(zip(current_text, current_labels)):
+            if len(text) < 2: continue # meaningless if not even two words in a sentence
+            # add sentense text
+            sentence_text.append(self.dataset.padding(text))
+            sentence_labels.append(polarity_label)
+
+            context = list()
+            if len(text) >= self.window_size * 2 + 1: # if it is long enough
+                for i in range(self.window_size, len(text) - self.window_size):
+                    context = text[i-self.window_size:i] + text[i+1:i+self.window_size]
+                    pos_v.extend(context)
+                    pos_u.extend([text[i] for _ in range(len(context))])
+                    # negative sampling (sample rate can be set)
+                    neg_v.extend([self.dataset.get_random_index(int(self.neg_sample_rate)) for _ in range(len(context))])
+            if len(context) == 0: # otherwise
+                i, j = random.sample(range(len(text)),  2)
+                pos_v.append(text[i])
+                pos_u.append(text[j])
+                neg_v.append(self.dataset.get_random_index(int(self.neg_sample_rate)))
+            # random.shuffle(raw_data)
+            if (batch_id + 1) % self.batch_size == 0:
+                yield (np.array(pos_u), np.array(pos_v), np.array(neg_v)), (sentence_text, sentence_labels)
+                sentence_text = list()
+                sentence_labels = list()
+                pos_u = list()
+                pos_v = list()
+                neg_v = list()

@@ -15,7 +15,8 @@ class word2vec:
     def __init__(self, input_file, model_name, vocabulary_size=100000,
                  embedding_dim=200, epoch=10, batch_size=256, windows_size=5, neg_sample_size=10):
         self.model_name = model_name
-        self.data = Dataset(input_file, vocabulary_size)
+        # self.data = Dataset(input_file, vocabulary_size)
+        self.data = Dataset(batch_size=batch_size, window_size=windows_size)
         self.vocabulary_size = vocabulary_size
         self.embedding_dim = embedding_dim
         self.epoch = epoch
@@ -23,11 +24,8 @@ class word2vec:
         self.windows_size = windows_size
         self.neg_sample_size = neg_sample_size
 
-    def train(self):
-        if self.model_name == 'SkipGram':
-            model = SkipGram(self.vocabulary_size, self.embedding_dim)
-        elif self.model_name == 'CBOW':
-            return
+    def train(self, report=True):
+        model = SkipGram(self.vocabulary_size, self.embedding_dim)
 
         if torch.cuda.is_available():
             model.cuda()
@@ -35,13 +33,17 @@ class word2vec:
         optimizer = optim.SGD(model.parameters(), lr=0.2)
 
         for epoch in range(self.epoch):
+
             start = time.time()
             self.data.process =True
             batch_num = 0
             batch_new = 0
 
-            while self.data.process:
-                pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
+            for data in self.data.generate_batch():
+
+                #while self.data.process:
+                # pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
+                (pos_u, pos_v, neg_v), _ = data
 
                 '''
                 print(pos_u.shape) # (2560,)
@@ -74,7 +76,7 @@ class word2vec:
                 loss.backward()
                 optimizer.step()
 
-                if batch_num % 3000 == 0:
+                if report and batch_num % 7 == 0: # 3000
                     end = time.time()
                     print('epoch,batch = %2d %5d:   batch_size = %5d  loss = %4.3f\r'
                           % (epoch, batch_num, self.batch_size, loss.item()), end="\n")
@@ -95,7 +97,7 @@ if __name__ == '__main__':
         torch.cuda.manual_seed(fixed_seed)
 
     # w2v = word2vec('text8', 'SkipGram')
-    w2v = word2vec('toy', 'SkipGram')
+    w2v = word2vec('toy', 'SkipGram', batch_size=1)
     # w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
     w2v.train()
 

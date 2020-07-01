@@ -77,11 +77,11 @@ class SkipGram(nn.Module):
 
         neg_embed_v = self.v_embeddings(v_neg)
         neg_score = torch.bmm(neg_embed_v, embed_u.unsqueeze(2)).squeeze()
-        neg_score = torch.sum(neg_score, dim = 1)
+        neg_score = torch.sum(neg_score, dim = -1)
         neg_output = F.logsigmoid(-1*neg_score).squeeze() #1-sigma(x)=sigma(-x)
 
         cost = pos_output + neg_output
-        return -1 * cost.sum() / batch_size
+        return -1 * cost.sum() / batch_size / pos_embed_v.shape[0]
 
 
     def save_embeddings(self, id2word, file_name, use_cuda):
