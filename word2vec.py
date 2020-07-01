@@ -51,7 +51,7 @@ class word2vec:
                 '''
                 target = np.concatenate([pos_u.copy() for _ in range(neg_v.shape[1] + 1)])
                 contex = np.concatenate([pos_v] + [neg_v[:,i] for i in range(neg_v.shape[1])])
-                labels = np.concatenate([1 for _ in pos_v] + [1 for _ in range(neg_v.shape[0] * neg_v.shape[1])])
+                labels = np.array([1 for _ in pos_v] + [1 for _ in range(neg_v.shape[0] * neg_v.shape[1])])
                 print(target.shape)
                 print(contex.shape)
                 print(labels.shape)
