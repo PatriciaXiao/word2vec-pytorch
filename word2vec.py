@@ -51,16 +51,15 @@ class word2vec:
                 '''
                 target = np.concatenate([pos_u.copy() for _ in range(neg_v.shape[1] + 1)])
                 contex = np.concatenate([pos_v] + [neg_v[:,i] for i in range(neg_v.shape[1])])
-                labels = np.array([1 for _ in pos_v] + [1 for _ in range(neg_v.shape[0] * neg_v.shape[1])])
-                print(target.shape)
-                print(contex.shape)
-                print(labels.shape)
-
-                exit(0)
+                labels = np.array([1 for _ in pos_v] + [-1 for _ in range(neg_v.shape[0] * neg_v.shape[1])])
 
                 pos_u = torch.LongTensor(pos_u)
                 pos_v = torch.LongTensor(pos_v)
                 neg_v = torch.LongTensor(neg_v)
+
+                target = torch.LongTensor(target)
+                contex = torch.LongTensor(contex)
+                labels = torch.LongTensor(labels)
 
 
                 if torch.cuda.is_available():
@@ -69,7 +68,8 @@ class word2vec:
                     neg_v = neg_v.cuda()
 
                 optimizer.zero_grad()
-                loss = model(pos_u, pos_v, neg_v, self.batch_size)
+                # loss = model(pos_u, pos_v, neg_v, self.batch_size)
+                loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
                 loss.backward()
                 optimizer.step()
 
