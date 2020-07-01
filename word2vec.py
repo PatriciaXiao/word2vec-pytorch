@@ -49,6 +49,10 @@ class word2vec:
                 print(neg_v.shape) # (2560, 10)
                 exit(0)
                 '''
+                target = np.concatenate([pos_u.copy() for _ in range(pos_v.shape[0] * (neg_v.shape[1] + 1))])
+                print(target.shape)
+
+                exit(0)
 
                 pos_u = torch.LongTensor(pos_u)
                 pos_v = torch.LongTensor(pos_v)
