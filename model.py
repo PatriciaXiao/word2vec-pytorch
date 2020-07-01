@@ -15,30 +15,57 @@ class CBOW(nn.Module):
         X = F.log_softmax(X)
         return X
 
+class BasicEncoder(nn.Module):
+    '''
+    reference: https://pytorch.org/tutorials/intermediate/seq2seq_translation_tutorial.html
+        Note: encoder and decoder should be optimized separately in this case
+    '''
+    def __init__(self, vocab_size, embd_size, polarity_dim=1):
+        super(BasicEncoder, self).__init__()
+        # we should train separate embeddings for context and target, in the sense that one should not be assumed to appear in its own context
+        self.context_embedding = nn.Embedding(vocab_size, embd_size)
+        self.targets_embedding = nn.Embedding(vocab_size, embd_size)
+        self.embedding_dim = embd_size
+        self.polarity_dim = polarity_dim
+        self.normalize_init(embd_size)
+        # sizes
+        self.d_n = embd_size - polarity_dim
+        self.d_p = polarity_dim
+        self.d = embd_size
+
+    def normalize_init(self, embd_size):
+        nn.init.normal_(self.context_embedding.weight, std=1.0 / math.sqrt(embd_size))
+        nn.init.normal_(self.targets_embedding.weight, std=1.0 / math.sqrt(embd_size))
+
+    def forward(self, inputs, target=True, part="all"):
+        '''
+        target or context, either embedding should be fine
+        '''
+        embedding_func = self.targets if target else self.context
+        embedded = embedding_func(inputs)
+        if part == "neutral":
+            embedded = embedded[:,:,:-self.polarity_dim]
+        elif part == "polarity":
+            embedded = embedded[:,:,-self.polarity_dim:]
+        return embedded
+
+    def context(self, inputs):
+        embedded = self.context_embedding(inputs)
+        return embedded
+    def targets(self, inputs):
+        embedded = self.targets_embedding(inputs)
+        return embedded
+
+    def get_embedding(self, target=True):
+        return self.targets_embedding if target else self.context_embedding
+
 class SkipGram(nn.Module):
     def __init__(self, vocab_size, embedding_dim):
         super(SkipGram, self).__init__()
-        self.u_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
-        self.v_embeddings = nn.Embedding(vocab_size, embedding_dim, sparse=True)
+        self.embeddings = BasicEncoder(vocab_size, embedding_dim)
+        self.u_embeddings = self.embeddings.targets
+        self.v_embeddings = self.embeddings.context
         self.embedding_dim = embedding_dim
-        '''
-        initrange = 0.5 / self.embedding_dim
-        self.u_embeddings.weight.data.uniform_(-initrange, initrange)
-        self.v_embeddings.weight.data.uniform_(-0, 0)
-        '''
-        nn.init.normal_(self.u_embeddings.weight, std=1.0 / math.sqrt(self.embedding_dim))
-        nn.init.normal_(self.v_embeddings.weight, std=1.0 / math.sqrt(self.embedding_dim))
-    '''
-    def forward(self, u_pos, v_pos, v_neg, batch_size, target, contex, labels):
-        embed_target = self.u_embeddings(target)
-        embed_ctx = self.v_embeddings(contex)
-
-        similarity = torch.sum(torch.mul(embed_target, embed_ctx), dim=1)
-        # the labels are either -1 or 1
-        similarity_labeled = torch.mul(similarity, labels)
-        loss = -F.logsigmoid(similarity_labeled).squeeze().sum() / batch_size
-        return loss
-    '''
 
     def forward(self, u_pos, v_pos, v_neg, batch_size):
         embed_u = self.u_embeddings(u_pos)
@@ -49,7 +76,6 @@ class SkipGram(nn.Module):
         pos_output = F.logsigmoid(pos_score).squeeze()
 
         neg_embed_v = self.v_embeddings(v_neg)
-        #print('neg_embed_v.shape', neg_embed_v.shape)
         neg_score = torch.bmm(neg_embed_v, embed_u.unsqueeze(2)).squeeze()
         neg_score = torch.sum(neg_score, dim = 1)
         neg_output = F.logsigmoid(-1*neg_score).squeeze() #1-sigma(x)=sigma(-x)
@@ -60,9 +86,9 @@ class SkipGram(nn.Module):
 
     def save_embeddings(self, id2word, file_name, use_cuda):
         if use_cuda:
-            embedding = self.u_embeddings.weight.cpu().data.numpy()
+            embedding = self.embeddings.get_embedding().weight.cpu().data.numpy()
         else:
-            embedding = self.u_embeddings.weight.data.numpy()
+            embedding = self.embeddings.get_embedding().weight.data.numpy()
 
         fout = open(file_name, 'w')
         fout.write('%d %d\n' % (len(id2word), self.embedding_dim))
