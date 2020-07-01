@@ -28,6 +28,17 @@ class SkipGram(nn.Module):
         '''
         nn.init.normal_(self.u_embeddings.weight, std=1.0 / math.sqrt(self.embedding_dim))
         nn.init.normal_(self.v_embeddings.weight, std=1.0 / math.sqrt(self.embedding_dim))
+    '''
+    def forward(self, u_pos, v_pos, v_neg, batch_size, target, contex, labels):
+        embed_target = self.u_embeddings(target)
+        embed_ctx = self.v_embeddings(contex)
+
+        similarity = torch.sum(torch.mul(embed_target, embed_ctx), dim=1)
+        # the labels are either -1 or 1
+        similarity_labeled = torch.mul(similarity, labels)
+        loss = -F.logsigmoid(similarity_labeled).squeeze().sum() / batch_size
+        return loss
+    '''
 
     def forward(self, u_pos, v_pos, v_neg, batch_size):
         embed_u = self.u_embeddings(u_pos)
@@ -45,6 +56,7 @@ class SkipGram(nn.Module):
 
         cost = pos_output + neg_output
         return -1 * cost.sum() / batch_size
+
 
     def save_embeddings(self, id2word, file_name, use_cuda):
         if use_cuda:
