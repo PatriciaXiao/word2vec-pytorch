@@ -49,8 +49,10 @@ class word2vec:
                 print(neg_v.shape) # (2560, 10)
                 exit(0)
                 '''
-                target = np.concatenate([pos_u.copy() for _ in range(pos_v.shape[0] * (neg_v.shape[1] + 1))])
+                target = np.concatenate([pos_u.copy() for _ in range(neg_v.shape[1] + 1)])
+                contex = np.concatenate([pos_v] + [neg_v[:,i] for i in range(neg_v.shape[1])])
                 print(target.shape)
+                print(contex.shape)
 
                 exit(0)
 
