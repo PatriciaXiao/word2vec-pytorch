@@ -160,7 +160,8 @@ class Dataset:
                 neg_v.append(self.dataset.get_random_index(int(self.neg_sample_rate)))
             # random.shuffle(raw_data)
             if (batch_id + 1) % self.batch_size == 0:
-                yield (np.array(pos_u), np.array(pos_v), np.array(neg_v)), (sentence_text, sentence_labels)
+                # yield (np.array(pos_u), np.array(pos_v), np.array(neg_v)), (sentence_text, sentence_labels)
+                yield np.array(pos_u), np.array(pos_v), np.array(neg_v)
                 sentence_text = list()
                 sentence_labels = list()
                 pos_u = list()
