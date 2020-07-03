@@ -43,7 +43,7 @@ class word2vec:
 
                 #while self.data.process:
                 # pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
-                (pos_u, pos_v, neg_v), _ = data
+                pos_u, pos_v, neg_v = data
 
                 '''
                 print(pos_u.shape) # (2560,)
