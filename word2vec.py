@@ -5,7 +5,8 @@ from torch.autograd import Variable
 import torch.optim as optim
 
 from model import SkipGram, CBOW
-from dataset import Dataset
+# from dataset import Dataset
+from dataset_old import Dataset
 
 import random
 import numpy as np
@@ -15,8 +16,8 @@ class word2vec:
     def __init__(self, input_file, model_name, vocabulary_size=100000,
                  embedding_dim=200, epoch=10, batch_size=256, windows_size=5, neg_sample_size=10):
         self.model_name = model_name
-        # self.data = Dataset(input_file, vocabulary_size)
-        self.data = Dataset(batch_size=batch_size, window_size=windows_size)
+        self.data = Dataset(input_file, vocabulary_size)
+        # self.data = Dataset(batch_size=batch_size, window_size=windows_size)
         self.vocabulary_size = vocabulary_size
         self.embedding_dim = embedding_dim
         self.epoch = epoch
@@ -39,11 +40,11 @@ class word2vec:
             batch_num = 0
             batch_new = 0
 
-            for data in self.data.generate_batch():
+            #for data in self.data.generate_batch(): pos_u, pos_v, neg_v = data
 
-                #while self.data.process:
-                # pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
-                pos_u, pos_v, neg_v = data
+            while self.data.process:
+                pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
+                # pos_u, pos_v, neg_v = data
 
                 '''
                 print(pos_u.shape) # (2560,)
