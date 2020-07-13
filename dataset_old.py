@@ -14,6 +14,8 @@ class Dataset(object):
         self.save_path = ''
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
+        print(data_idx, self.count, self.idx2word)
+        exit(0)
         self.train_data = self.subsampling(data_idx)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
