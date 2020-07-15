@@ -6,10 +6,6 @@ import random
 import time
 from six.moves import xrange
 
-from utils import *
-
-#data_index = [0, 0]
-
 data_index = 0
 
 class Dataset(object):
@@ -17,31 +13,20 @@ class Dataset(object):
         self.vocab_size = vocab_size
         self.save_path = ''
         self.vocab = self.read_data(data_file)
-        # print(" ".join(flatten2d(self.vocab)))
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        # print(data_idx, self.count, self.idx2word)
-        # exit(0)
-        # self.train_data = data_idx
+        #print(data_idx, self.count, self.idx2word)
+        #exit(0)
         self.train_data = self.subsampling(data_idx)
-        # print(self.sentence(flatten2d(self.train_data)))
-        # exit(0)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 
     def read_data(self, data_file):
-        data = list()
         with open(data_file) as f:
-            lines = f.read().split('\n')
-            for line in lines:
-                data_line = [x for x in line.split(' ') if x != 'eoood']
-                data.append(data_line)
+            data = f.read().split()
+            data = [x for x in data if x != 'eoood']
         return data
 
-    def sentence(self, text):
-        return " ".join([self.idx2word[t] for t in text])
-
-    def build_dataset(self, words_raw, n_words):
-        words = flatten2d(words_raw)
+    def build_dataset(self, words, n_words):
         count = [['UNK', -1]]
         count.extend(collections.Counter(words).most_common(n_words - 1))
         dictionary = dict()
@@ -54,18 +39,6 @@ class Dataset(object):
         unk_count = 0
 
         #dataset labelled
-        '''
-        for words in words_raw:
-            tmp_index = list()
-            for word in words:
-                if word in dictionary:
-                    index = dictionary[word]
-                else:
-                    index = 0
-                    unk_count += 1
-                tmp_index.append(index)
-            data.append(tmp_index)
-        '''
         for word in words:
             if word in dictionary:
                 index = dictionary[word]
@@ -73,7 +46,6 @@ class Dataset(object):
                 index = 0
                 unk_count += 1
             data.append(index)
-
 
         count[0][1] = unk_count
         reversed_dict = dict(zip(dictionary.values(), dictionary.keys()))
@@ -85,22 +57,12 @@ class Dataset(object):
         count = [c[1] for c in self.count]
         frequency = count / np.sum(count)
         prob = dict()
-        t = 1e-3 #1e-5
 
         #calculate discard probability
         for idx, x in enumerate(frequency):
-            # y = (math.sqrt(x / 0.001) + 1) * 0.001 / x
-            y = math.sqrt(t / x)
+            y = (math.sqrt(x / 0.001) + 1) * 0.001 / x
             prob[idx] = y
         subsampled_data = list()
-        '''
-        for line in data:
-            subsampled_line = list()
-            for word in line:
-                if random.random() < prob[word]:
-                    subsampled_line.append(word)
-            subsampled_data.append(subsampled_line)
-        '''
         for word in data:
             if random.random() < prob[word]:
                 subsampled_data.append(word)
@@ -156,46 +118,4 @@ class Dataset(object):
                 buffer = data[data_index : data_index + span]
         neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
         return np.array(pos_u), np.array(pos_v), neg_v
-        '''
-        global data_index
-
-        span = 2 * window_size + 1
-
-        data = [d for d in self.train_data if len(d) >= span]
-
-        context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
-        labels = np.ndarray(shape=(batch_size), dtype=np.int64)
-        if data_index[1] + span > len(data[data_index[0]]):
-            data_index[0] += 1
-            data_index[1] = 0
-        if data_index[0] + batch_size > len(data):
-            data_index[0] = 0
-            data_index[1] = 0
-            self.process = False
-
-        buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
-        pos_u = []
-        pos_v = []
-        #print(self.sentence(buffer))
-        #exit(0)
-        for i in range(batch_size):
-            context[i, :] = buffer[:window_size] + buffer[window_size+1:]
-            labels[i] = buffer[window_size]
-            for j in range(span - 1):
-                pos_u.append(labels[i])
-                pos_v.append(context[i, j])
-
-            data_index[1] += 1
-            if data_index[1] + span > len(data[data_index[0]]):
-                data_index[0] += 1
-                data_index[1] = 0
-            if data_index[0] + batch_size > len(data):
-                data_index[0] = 0
-                data_index[1] = 0
-                self.process = False
-            else:
-                buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
-        neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
-        return np.array(pos_u), np.array(pos_v), neg_v
-        '''
 
