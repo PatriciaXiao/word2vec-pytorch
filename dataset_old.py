@@ -16,7 +16,7 @@ class Dataset(object):
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
         #print(data_idx, self.count, self.idx2word)
         #exit(0)
-        self.train_data = self.subsampling(data_idx)
+        self.train_data = data_idx #self.subsampling(data_idx)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 
@@ -105,8 +105,8 @@ class Dataset(object):
         buffer = data[data_index : data_index + span]
         pos_u = []
         pos_v = []
-        print(self.sentence(buffer))
-        exit(0)
+        #print(self.sentence(buffer))
+        #exit(0)
         for i in range(batch_size):
             context[i, :] = buffer[:window_size] + buffer[window_size+1:]
             labels[i] = buffer[window_size]
