@@ -16,7 +16,8 @@ class Dataset(object):
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
         #print(data_idx, self.count, self.idx2word)
         #exit(0)
-        self.train_data = data_idx #self.subsampling(data_idx)
+        # self.train_data = data_idx
+        self.train_data = self.subsampling(data_idx)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 

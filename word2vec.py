@@ -7,7 +7,7 @@ import torch.optim as optim
 from model import SkipGram, CBOW
 
 DEBUG = True #False
-DEBUG = False
+#DEBUG = False
 
 if DEBUG:
     from dataset import Dataset
@@ -113,7 +113,7 @@ if __name__ == '__main__':
         torch.cuda.manual_seed(fixed_seed)
 
     # w2v = word2vec('text8', 'SkipGram')
-    w2v = word2vec('toy', 'SkipGram', batch_size=1)
+    w2v = word2vec('toy', 'SkipGram', batch_size=1, epoch=10)
     # w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
     w2v.train()
 
