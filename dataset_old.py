@@ -6,6 +6,8 @@ import random
 import time
 from six.moves import xrange
 
+from utils import *
+
 data_index = 0
 
 class Dataset(object):
@@ -14,6 +16,8 @@ class Dataset(object):
         self.save_path = ''
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
+        print(data_idx)
+        exit(0)
         #print(data_idx, self.count, self.idx2word)
         #exit(0)
         # self.train_data = data_idx
@@ -22,15 +26,19 @@ class Dataset(object):
         self.save_vocab()
 
     def read_data(self, data_file):
+        data = list()
         with open(data_file) as f:
-            data = f.read().split()
-            data = [x for x in data if x != 'eoood']
+            lines = f.read().split('\n')
+            for line in lines:
+                data_line = [x for x in line.split(' ') if x != 'eoood']
+                data.append(data_line)
         return data
 
     def sentence(self, text):
         return " ".join([self.idx2word[t] for t in text])
 
-    def build_dataset(self, words, n_words):
+    def build_dataset(self, words_raw, n_words):
+        words = flatten2d(words_raw)
         count = [['UNK', -1]]
         count.extend(collections.Counter(words).most_common(n_words - 1))
         dictionary = dict()
@@ -43,13 +51,16 @@ class Dataset(object):
         unk_count = 0
 
         #dataset labelled
-        for word in words:
-            if word in dictionary:
-                index = dictionary[word]
-            else:
-                index = 0
-                unk_count += 1
-            data.append(index)
+        for words in words_raw:
+            tmp_index = list()
+            for word in words:
+                if word in dictionary:
+                    index = dictionary[word]
+                else:
+                    index = 0
+                    unk_count += 1
+                tmp_index.append(index)
+            data.append(tmp_index)
 
         count[0][1] = unk_count
         reversed_dict = dict(zip(dictionary.values(), dictionary.keys()))
