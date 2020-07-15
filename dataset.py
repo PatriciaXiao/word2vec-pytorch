@@ -96,7 +96,7 @@ class PairedDataset:
         text_data = np.array(flatten2d(raw_data))
         # add some randomness
         shuffled_index = list(range(len(labels)))
-        random.shuffle(shuffled_index)
+        #random.shuffle(shuffled_index)
         text_data = text_data[shuffled_index]
         labels = labels[shuffled_index]
         return text_data, labels
@@ -112,6 +112,9 @@ class PairedDataset:
 
     def get_index(self, word):
         return self.w2i.get(word, 0)
+
+    def sentence(self, text):
+        return " ".join([self.i2w[t] for t in text])
 
 # sampler
 class Dataset:
@@ -146,6 +149,8 @@ class Dataset:
             sentence_labels.append(polarity_label)
 
             context = list()
+            print(self.dataset.sentence(text))
+            exit(0)
             if len(text) >= self.window_size * 2 + 1: # if it is long enough
                 for i in range(self.window_size, len(text) - self.window_size):
                     context = text[i-self.window_size:i] + text[i+1:i+self.window_size]

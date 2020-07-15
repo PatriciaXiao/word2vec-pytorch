@@ -26,6 +26,9 @@ class Dataset(object):
             data = [x for x in data if x != 'eoood']
         return data
 
+    def sentence(self, text):
+        return " ".join([self.idx2word[t] for t in text])
+
     def build_dataset(self, words, n_words):
         count = [['UNK', -1]]
         count.extend(collections.Counter(words).most_common(n_words - 1))
@@ -102,6 +105,8 @@ class Dataset(object):
         buffer = data[data_index : data_index + span]
         pos_u = []
         pos_v = []
+        print(self.sentence(buffer))
+        exit(0)
         for i in range(batch_size):
             context[i, :] = buffer[:window_size] + buffer[window_size+1:]
             labels[i] = buffer[window_size]
