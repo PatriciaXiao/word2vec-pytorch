@@ -6,8 +6,8 @@ import torch.optim as optim
 
 from model import SkipGram, CBOW
 
-DEBUG = True #False
-#DEBUG = False
+#DEBUG = True #False
+DEBUG = False
 
 if DEBUG:
     from dataset import Dataset

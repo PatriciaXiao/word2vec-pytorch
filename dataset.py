@@ -96,7 +96,7 @@ class PairedDataset:
         text_data = np.array(flatten2d(raw_data))
         # add some randomness
         shuffled_index = list(range(len(labels)))
-        #random.shuffle(shuffled_index)
+        random.shuffle(shuffled_index)
         text_data = text_data[shuffled_index]
         labels = labels[shuffled_index]
         return text_data, labels
@@ -142,12 +142,14 @@ class Dataset:
         pos_v = list()
         neg_v = list()
         current_text, current_labels = self.dataset.prepare_text(mode) # label is party label
+        # for text in current_text:
+        #     print(self.dataset.sentence(text))
+        # exit(0)
         for batch_id, (text, polarity_label) in enumerate(zip(current_text, current_labels)):
             if len(text) < 2: continue # meaningless if not even two words in a sentence
             # add sentense text
             sentence_text.append(self.dataset.padding(text))
             sentence_labels.append(polarity_label)
-
             context = list()
             # print(self.dataset.sentence(text))
             # exit(0)
