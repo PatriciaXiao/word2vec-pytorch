@@ -8,7 +8,7 @@ from six.moves import xrange
 
 from utils import *
 
-data_index = 0
+data_index = [0, 0]
 
 class Dataset(object):
     def __init__(self, data_file, vocab_size):
@@ -16,12 +16,10 @@ class Dataset(object):
         self.save_path = ''
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        print(data_idx)
-        exit(0)
         #print(data_idx, self.count, self.idx2word)
         #exit(0)
-        # self.train_data = data_idx
-        self.train_data = self.subsampling(data_idx)
+        self.train_data = data_idx
+        # self.train_data = self.subsampling(data_idx)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 
@@ -78,9 +76,12 @@ class Dataset(object):
             y = (math.sqrt(x / 0.001) + 1) * 0.001 / x
             prob[idx] = y
         subsampled_data = list()
-        for word in data:
-            if random.random() < prob[word]:
-                subsampled_data.append(word)
+        for line in data:
+            subsampled_line = list()
+            for word in line:
+                if random.random() < prob[word]:
+                    subsampled_line.append(word)
+            subsampled_data.append(subsampled_line)
         return subsampled_data
 
     def init_sample_table(self):
@@ -104,17 +105,23 @@ class Dataset(object):
                 f.write('%s %d\n' % (vocab_word, self.count[i][1]))
 
     def generate_batch(self, window_size, batch_size, neg_sample_size):
-        data = self.train_data
         global data_index
 
         span = 2 * window_size + 1
+
+        data = [d for d in self.train_data if len(d) >= span]
+
         context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
         labels = np.ndarray(shape=(batch_size), dtype=np.int64)
-        if data_index + span > len(data):
-            data_index = 0
+        if data_index[1] + span > len(data[data_index[0]]):
+            data_index[0] += 1
+            data_index[1] = 0
+        if data_index[0] + batch_size > len(data):
+            data_index[0] = 0
+            data_index[1] = 0
             self.process = False
 
-        buffer = data[data_index : data_index + span]
+        buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
         pos_u = []
         pos_v = []
         #print(self.sentence(buffer))
@@ -126,13 +133,16 @@ class Dataset(object):
                 pos_u.append(labels[i])
                 pos_v.append(context[i, j])
 
-            data_index += 1
-            if data_index + span > len(data):
-                buffer = data[:span]
-                data_index = 0
+            data_index[1] += 1
+            if data_index[1] + span > len(data[data_index[0]]):
+                data_index[0] += 1
+                data_index[1] = 0
+            if data_index[0] + batch_size > len(data):
+                data_index[0] = 0
+                data_index[1] = 0
                 self.process = False
             else:
-                buffer = data[data_index : data_index + span]
+                buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
         neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
         return np.array(pos_u), np.array(pos_v), neg_v
 
