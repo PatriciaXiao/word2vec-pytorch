@@ -6,7 +6,7 @@ import torch.optim as optim
 
 from model import SkipGram, CBOW
 
-DEBUG = False
+DEBUG = True #False
 
 if DEBUG:
     from dataset import Dataset
@@ -50,22 +50,6 @@ class word2vec:
             if DEBUG:
                 for data in self.data.generate_batch():
                     pos_u, pos_v, neg_v = data
-
-                    '''
-                    print(pos_u.shape) # (2560,)
-                    print(pos_v.shape) # (2560,)
-                    print(neg_v.shape) # (2560, 10)
-                    exit(0)
-                    '''
-
-                    '''
-                    target = np.concatenate([pos_u.copy() for _ in range(neg_v.shape[1] + 1)])
-                    contex = np.concatenate([pos_v] + [neg_v[:,i] for i in range(neg_v.shape[1])])
-                    labels = np.array([1 for _ in pos_v] + [-1 for _ in range(neg_v.shape[0] * neg_v.shape[1])])
-                    target = torch.LongTensor(target)
-                    contex = torch.LongTensor(contex)
-                    labels = torch.LongTensor(labels)
-                    '''
 
                     pos_u = torch.LongTensor(pos_u)
                     pos_v = torch.LongTensor(pos_v)
