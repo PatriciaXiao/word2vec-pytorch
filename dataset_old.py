@@ -85,7 +85,7 @@ class Dataset(object):
         count = [c[1] for c in self.count]
         frequency = count / np.sum(count)
         prob = dict()
-        t = 1e-3 #1e-5
+        t = 1e-3 #1e-5 # the fewer words kept in the dataset, the smaller this number
 
         #calculate discard probability
         for idx, x in enumerate(frequency):
