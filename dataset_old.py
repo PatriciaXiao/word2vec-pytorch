@@ -8,9 +8,9 @@ from six.moves import xrange
 
 from utils import *
 
-#data_index = [0, 0]
+data_index = [0, 0]
 
-data_index = 0
+# data_index = 0
 
 class Dataset(object):
     def __init__(self, data_file, vocab_size):
@@ -54,7 +54,7 @@ class Dataset(object):
         unk_count = 0
 
         #dataset labelled
-        '''
+        # '''
         for words in words_raw:
             tmp_index = list()
             for word in words:
@@ -73,6 +73,7 @@ class Dataset(object):
                 index = 0
                 unk_count += 1
             data.append(index)
+        '''
 
 
         count[0][1] = unk_count
@@ -93,7 +94,7 @@ class Dataset(object):
             y = math.sqrt(t / x)
             prob[idx] = y
         subsampled_data = list()
-        '''
+        # '''
         for line in data:
             subsampled_line = list()
             for word in line:
@@ -104,6 +105,7 @@ class Dataset(object):
         for word in data:
             if random.random() < prob[word]:
                 subsampled_data.append(word)
+        '''
         return subsampled_data
 
     def init_sample_table(self):
@@ -128,35 +130,7 @@ class Dataset(object):
 
     def generate_batch(self, window_size, batch_size, neg_sample_size):
         data = self.train_data
-        global data_index
-
-        span = 2 * window_size + 1
-        context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
-        labels = np.ndarray(shape=(batch_size), dtype=np.int64)
-        if data_index + span > len(data):
-            data_index = 0
-            self.process = False
-
-        buffer = data[data_index : data_index + span]
-        pos_u = []
-        pos_v = []
-        for i in range(batch_size):
-            context[i, :] = buffer[:window_size] + buffer[window_size+1:]
-            labels[i] = buffer[window_size]
-            for j in range(span - 1):
-                pos_u.append(labels[i])
-                pos_v.append(context[i, j])
-
-            data_index += 1
-            if data_index + span > len(data):
-                buffer = data[:span]
-                data_index = 0
-                self.process = False
-            else:
-                buffer = data[data_index : data_index + span]
-        neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
-        return np.array(pos_u), np.array(pos_v), neg_v
-        '''
+        #'''
         global data_index
 
         span = 2 * window_size + 1
@@ -195,6 +169,35 @@ class Dataset(object):
                 self.process = False
             else:
                 buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
+        neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
+        return np.array(pos_u), np.array(pos_v), neg_v
+        '''
+        global data_index
+
+        span = 2 * window_size + 1
+        context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
+        labels = np.ndarray(shape=(batch_size), dtype=np.int64)
+        if data_index + span > len(data):
+            data_index = 0
+            self.process = False
+            
+        buffer = data[data_index : data_index + span]
+        pos_u = []
+        pos_v = []
+        for i in range(batch_size):
+            context[i, :] = buffer[:window_size] + buffer[window_size+1:]
+            labels[i] = buffer[window_size]
+            for j in range(span - 1):
+                pos_u.append(labels[i])
+                pos_v.append(context[i, j])
+
+            data_index += 1
+            if data_index + span > len(data):
+                buffer = data[:span]
+                data_index = 0
+                self.process = False
+            else:
+                buffer = data[data_index : data_index + span]
         neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
         return np.array(pos_u), np.array(pos_v), neg_v
         '''
