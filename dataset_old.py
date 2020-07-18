@@ -10,21 +10,14 @@ from utils import *
 
 data_index = [0, 0]
 
-# data_index = 0
-
 class Dataset(object):
     def __init__(self, data_file, vocab_size):
         self.vocab_size = vocab_size
         self.save_path = ''
         self.vocab = self.read_data(data_file)
-        # print(" ".join(flatten2d(self.vocab)))
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        # print(data_idx, self.count, self.idx2word)
-        # exit(0)
         self.train_data = data_idx
         # self.train_data = self.subsampling(data_idx)
-        # print(self.sentence(flatten2d(self.train_data)))
-        # exit(0)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 
@@ -54,7 +47,6 @@ class Dataset(object):
         unk_count = 0
 
         #dataset labelled
-        # '''
         for words in words_raw:
             tmp_index = list()
             for word in words:
@@ -65,15 +57,6 @@ class Dataset(object):
                     unk_count += 1
                 tmp_index.append(index)
             data.append(tmp_index)
-        '''
-        for word in words:
-            if word in dictionary:
-                index = dictionary[word]
-            else:
-                index = 0
-                unk_count += 1
-            data.append(index)
-        '''
 
 
         count[0][1] = unk_count
@@ -94,18 +77,12 @@ class Dataset(object):
             y = math.sqrt(t / x)
             prob[idx] = y
         subsampled_data = list()
-        # '''
         for line in data:
             subsampled_line = list()
             for word in line:
                 if random.random() < prob[word]:
                     subsampled_line.append(word)
             subsampled_data.append(subsampled_line)
-        '''
-        for word in data:
-            if random.random() < prob[word]:
-                subsampled_data.append(word)
-        '''
         return subsampled_data
 
     def init_sample_table(self):
@@ -130,7 +107,6 @@ class Dataset(object):
 
     def generate_batch(self, window_size, batch_size, neg_sample_size):
         data = self.train_data
-        #'''
         global data_index
 
         span = 2 * window_size + 1
@@ -150,8 +126,6 @@ class Dataset(object):
         buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
         pos_u = []
         pos_v = []
-        #print(self.sentence(buffer))
-        #exit(0)
         for i in range(batch_size):
             context[i, :] = buffer[:window_size] + buffer[window_size+1:]
             labels[i] = buffer[window_size]
@@ -171,34 +145,5 @@ class Dataset(object):
                 buffer = data[data_index[0]][data_index[1] : data_index[1] + span]
         neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
         return np.array(pos_u), np.array(pos_v), neg_v
-        '''
-        global data_index
 
-        span = 2 * window_size + 1
-        context = np.ndarray(shape=(batch_size, 2 * window_size), dtype=np.int64)
-        labels = np.ndarray(shape=(batch_size), dtype=np.int64)
-        if data_index + span > len(data):
-            data_index = 0
-            self.process = False
-            
-        buffer = data[data_index : data_index + span]
-        pos_u = []
-        pos_v = []
-        for i in range(batch_size):
-            context[i, :] = buffer[:window_size] + buffer[window_size+1:]
-            labels[i] = buffer[window_size]
-            for j in range(span - 1):
-                pos_u.append(labels[i])
-                pos_v.append(context[i, j])
-
-            data_index += 1
-            if data_index + span > len(data):
-                buffer = data[:span]
-                data_index = 0
-                self.process = False
-            else:
-                buffer = data[data_index : data_index + span]
-        neg_v = np.random.choice(self.sample_table, size=(batch_size * 2 * window_size, neg_sample_size))
-        return np.array(pos_u), np.array(pos_v), neg_v
-        '''
 
