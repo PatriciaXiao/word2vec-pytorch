@@ -117,9 +117,7 @@ class Dataset(object):
 
         context = np.ndarray(shape=(self.batch_size, 2 * self.window_size), dtype=np.int64)
         labels = np.ndarray(shape=(self.batch_size), dtype=np.int64)
-        if data_index[1] + self.span > len(data[data_index[0]]):
-            data_index[0] += 1
-            data_index[1] = 0
+        
         while data_index[0] + self.batch_size <= len(data):
             buffer = data[data_index[0]][data_index[1] : data_index[1] + self.span]
             pos_u = []
