@@ -127,7 +127,7 @@ class Dataset(object):
 
             tmp_data_size = len(pos_u)
             neg_v = np.random.choice(self.sample_table, size=(tmp_data_size, self.neg_sample_size))
-            if tmp_data_size > 0:
+            if (row_index + 1) % self.batch_size == 0 and tmp_data_size > 0:
                 yield np.array(pos_u), np.array(pos_v), neg_v
                 pos_u = list()
                 pos_v = list()
