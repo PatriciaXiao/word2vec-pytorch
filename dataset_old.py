@@ -9,6 +9,7 @@ from six.moves import xrange
 from utils import *
 
 class Dataset(object):
+    END = ['eoood']
     def __init__(self, data_file, vocab_size, window_size, neg_sample_size, batch_size):
         self.vocab_size = vocab_size
         self.save_path = ''
@@ -27,7 +28,7 @@ class Dataset(object):
         with open(data_file) as f:
             lines = f.read().split('\n')
             for line in lines:
-                data_line = [x for x in line.split(' ') if x != 'eoood']
+                data_line = [x for x in line.split(' ') if x not in Dataset.END]
                 data.append(data_line)
         return data
 
