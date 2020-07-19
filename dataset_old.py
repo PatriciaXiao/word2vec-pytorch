@@ -8,8 +8,6 @@ from six.moves import xrange
 
 from utils import *
 
-# data_index = [0, 0]
-
 class Dataset(object):
     def __init__(self, data_file, vocab_size, window_size, neg_sample_size, batch_size):
         self.vocab_size = vocab_size
@@ -21,7 +19,6 @@ class Dataset(object):
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
         self.train_data = data_idx
-        # self.train_data = self.subsampling(data_idx)
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 
