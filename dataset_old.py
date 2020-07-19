@@ -119,6 +119,7 @@ class Dataset(object):
         context = np.ndarray(shape=(self.batch_size, 2 * self.window_size), dtype=np.int64)
         labels = np.ndarray(shape=(self.batch_size), dtype=np.int64)
 
+        # for row_index in range(len(data)):
         while row_index + self.batch_size <= len(data):
             buffer = data[row_index][col_index : col_index + self.span]
             pos_u = []
