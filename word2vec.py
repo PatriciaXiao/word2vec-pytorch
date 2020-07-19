@@ -48,57 +48,31 @@ class word2vec:
             batch_num = 0
             batch_new = 0
 
-            if DEBUG:
-                for data in self.data.generate_batch():
-                    pos_u, pos_v, neg_v = data
+            for data in self.data.generate_batch():
+                pos_u, pos_v, neg_v = data
 
-                    pos_u = torch.LongTensor(pos_u)
-                    pos_v = torch.LongTensor(pos_v)
-                    neg_v = torch.LongTensor(neg_v)
+                pos_u = torch.LongTensor(pos_u)
+                pos_v = torch.LongTensor(pos_v)
+                neg_v = torch.LongTensor(neg_v)
 
-                    if torch.cuda.is_available():
-                        pos_u = pos_u.cuda()
-                        pos_v = pos_v.cuda()
-                        neg_v = neg_v.cuda()
+                if torch.cuda.is_available():
+                    pos_u = pos_u.cuda()
+                    pos_v = pos_v.cuda()
+                    neg_v = neg_v.cuda()
 
-                    optimizer.zero_grad()
-                    loss = model(pos_u, pos_v, neg_v, self.batch_size)
-                    # loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
-                    loss.backward()
-                    optimizer.step()
+                optimizer.zero_grad()
+                loss = model(pos_u, pos_v, neg_v, self.batch_size)
+                # loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
+                loss.backward()
+                optimizer.step()
 
-                    if report and batch_num % 7 == 0: # 3000
-                        end = time.time()
-                        print('epoch,batch = %2d %5d:   batch_size = %5d  loss = %4.3f\r'
-                              % (epoch, batch_num, self.batch_size, loss.item()), end="\n")
-                        batch_new = batch_num
-                        start = time.time()
-                    batch_num += 1
-            else:
-                while self.data.process:
-                    pos_u, pos_v, neg_v = self.data.generate_batch()
-                    pos_u = torch.LongTensor(pos_u)
-                    pos_v = torch.LongTensor(pos_v)
-                    neg_v = torch.LongTensor(neg_v)
-
-                    if torch.cuda.is_available():
-                        pos_u = pos_u.cuda()
-                        pos_v = pos_v.cuda()
-                        neg_v = neg_v.cuda()
-
-                    optimizer.zero_grad()
-                    loss = model(pos_u, pos_v, neg_v, self.batch_size)
-                    # loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
-                    loss.backward()
-                    optimizer.step()
-
-                    if report and batch_num % 7 == 0: # 3000
-                        end = time.time()
-                        print('epoch,batch = %2d %5d:   batch_size = %5d  loss = %4.3f\r'
-                              % (epoch, batch_num, self.batch_size, loss.item()), end="\n")
-                        batch_new = batch_num
-                        start = time.time()
-                    batch_num += 1
+                if report and batch_num % 7 == 0: # 3000
+                    end = time.time()
+                    print('epoch,batch = %2d %5d:   batch_size = %5d  loss = %4.3f\r'
+                          % (epoch, batch_num, self.batch_size, loss.item()), end="\n")
+                    batch_new = batch_num
+                    start = time.time()
+                batch_num += 1
 
         model.save_embeddings(self.data.idx2word, 'word_embdding.txt', torch.cuda.is_available())
 

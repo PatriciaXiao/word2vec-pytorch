@@ -8,7 +8,7 @@ from six.moves import xrange
 
 from utils import *
 
-data_index = [0, 0]
+# data_index = [0, 0]
 
 class Dataset(object):
     def __init__(self, data_file, vocab_size, window_size, neg_sample_size, batch_size):
@@ -111,7 +111,7 @@ class Dataset(object):
 
     def generate_batch(self):
         data = self.train_data
-        global data_index
+        data_index = [0, 0]
 
         data = [d for d in self.train_data if len(d) >= self.span]
 
@@ -120,32 +120,22 @@ class Dataset(object):
         if data_index[1] + self.span > len(data[data_index[0]]):
             data_index[0] += 1
             data_index[1] = 0
-        if data_index[0] + self.batch_size > len(data):
-            data_index[0] = 0
-            data_index[1] = 0
-            self.process = False
+        while data_index[0] + self.batch_size <= len(data):
+            buffer = data[data_index[0]][data_index[1] : data_index[1] + self.span]
+            pos_u = []
+            pos_v = []
+            for i in range(self.batch_size):
+                context[i, :] = buffer[:self.window_size] + buffer[self.window_size+1:]
+                labels[i] = buffer[self.window_size]
+                for j in range(self.span - 1):
+                    pos_u.append(labels[i])
+                    pos_v.append(context[i, j])
 
-        buffer = data[data_index[0]][data_index[1] : data_index[1] + self.span]
-        pos_u = []
-        pos_v = []
-        for i in range(self.batch_size):
-            context[i, :] = buffer[:self.window_size] + buffer[self.window_size+1:]
-            labels[i] = buffer[self.window_size]
-            for j in range(self.span - 1):
-                pos_u.append(labels[i])
-                pos_v.append(context[i, j])
-
-            data_index[1] += 1
-            if data_index[1] + self.span > len(data[data_index[0]]):
-                data_index[0] += 1
-                data_index[1] = 0
-            if data_index[0] + self.batch_size > len(data):
-                data_index[0] = 0
-                data_index[1] = 0
-                self.process = False
-            else:
-                buffer = data[data_index[0]][data_index[1] : data_index[1] + self.span]
-        neg_v = np.random.choice(self.sample_table, size=(self.batch_size * 2 * self.window_size, self.neg_sample_size))
-        return np.array(pos_u), np.array(pos_v), neg_v
+                data_index[1] += 1
+                if data_index[1] + self.span > len(data[data_index[0]]):
+                    data_index[0] += 1
+                    data_index[1] = 0
+            neg_v = np.random.choice(self.sample_table, size=(self.batch_size * 2 * self.window_size, self.neg_sample_size))
+            yield np.array(pos_u), np.array(pos_v), neg_v
 
 
