@@ -25,7 +25,7 @@ class word2vec:
         if DEBUG:
             self.data = Dataset(batch_size=batch_size, window_size=windows_size)
         else:
-            self.data = Dataset(input_file, vocabulary_size)
+            self.data = Dataset(input_file, vocabulary_size, window_size=windows_size, neg_sample_size=neg_sample_size, batch_size=batch_size)
         self.vocabulary_size = vocabulary_size
         self.embedding_dim = embedding_dim
         self.epoch = epoch
@@ -76,7 +76,7 @@ class word2vec:
                     batch_num += 1
             else:
                 while self.data.process:
-                    pos_u, pos_v, neg_v = self.data.generate_batch(self.windows_size, self.batch_size, self.neg_sample_size)
+                    pos_u, pos_v, neg_v = self.data.generate_batch()
                     pos_u = torch.LongTensor(pos_u)
                     pos_v = torch.LongTensor(pos_v)
                     neg_v = torch.LongTensor(neg_v)
