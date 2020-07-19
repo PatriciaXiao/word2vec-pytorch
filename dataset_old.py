@@ -111,15 +111,16 @@ class Dataset(object):
 
     def generate_batch(self):
         data = self.train_data
-        data_index = [0, 0]
+        row_index = 0
+        col_index = 0
 
         data = [d for d in self.train_data if len(d) >= self.span]
 
         context = np.ndarray(shape=(self.batch_size, 2 * self.window_size), dtype=np.int64)
         labels = np.ndarray(shape=(self.batch_size), dtype=np.int64)
-        
-        while data_index[0] + self.batch_size <= len(data):
-            buffer = data[data_index[0]][data_index[1] : data_index[1] + self.span]
+
+        while row_index + self.batch_size <= len(data):
+            buffer = data[row_index][col_index : col_index + self.span]
             pos_u = []
             pos_v = []
             for i in range(self.batch_size):
@@ -129,10 +130,10 @@ class Dataset(object):
                     pos_u.append(labels[i])
                     pos_v.append(context[i, j])
 
-                data_index[1] += 1
-                if data_index[1] + self.span > len(data[data_index[0]]):
-                    data_index[0] += 1
-                    data_index[1] = 0
+                col_index += 1
+                if col_index + self.span > len(data[row_index]):
+                    row_index += 1
+                    col_index = 0
             neg_v = np.random.choice(self.sample_table, size=(self.batch_size * 2 * self.window_size, self.neg_sample_size))
             yield np.array(pos_u), np.array(pos_v), neg_v
 
