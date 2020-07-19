@@ -87,7 +87,7 @@ if __name__ == '__main__':
         torch.cuda.manual_seed(fixed_seed)
 
     # w2v = word2vec('text8', 'SkipGram')
-    w2v = word2vec('toy', 'SkipGram', batch_size=1, epoch=10)
+    w2v = word2vec('toy', 'SkipGram', batch_size=1, epoch=20)
     # w2v = word2vec('democratic_cleaned_min.txt', 'SkipGram')
     w2v.train()
 

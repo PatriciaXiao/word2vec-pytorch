@@ -113,26 +113,24 @@ class Dataset(object):
 
         data = [d for d in self.train_data if len(d) >= self.span]
 
-        # for row_index in range(len(data)):
-        while row_index < len(data):
-            buffer = data[row_index][col_index : col_index + self.span]
-            pos_u = []
-            pos_v = []
+        pos_u = list()
+        pos_v = list()
+        for row_index in range(len(data)):
+            for col_index in range(len(data[row_index]) - self.span):
+                buffer = data[row_index][col_index : col_index + self.span]
             
-            context = buffer[:self.window_size] + buffer[self.window_size+1:]
-            labels = buffer[self.window_size]
-            for j in range(self.span - 1):
-                pos_u.append(labels)
-                pos_v.append(context[j])
+                context = buffer[:self.window_size] + buffer[self.window_size+1:]
+                labels = buffer[self.window_size]
+                for j in range(self.span - 1):
+                    pos_u.append(labels)
+                    pos_v.append(context[j])
 
-            col_index += 1
-            if col_index + self.span > len(data[row_index]):
-                row_index += 1
-                col_index = 0
+            tmp_data_size = len(pos_u)
+            neg_v = np.random.choice(self.sample_table, size=(tmp_data_size, self.neg_sample_size))
+            if tmp_data_size > 0:
+                yield np.array(pos_u), np.array(pos_v), neg_v
+                pos_u = list()
+                pos_v = list()
 
-            neg_v = np.random.choice(self.sample_table, size=(self.batch_size * 2 * self.window_size, self.neg_sample_size))
-            print(np.array(pos_u).shape, np.array(pos_v).shape, neg_v.shape)
-            exit(0)
-            yield np.array(pos_u), np.array(pos_v), neg_v
 
 
