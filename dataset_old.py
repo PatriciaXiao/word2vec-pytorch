@@ -15,26 +15,26 @@ class Dataset(object):
             error("partitions sum not correct")
         self.vocab_size = vocab_size
         self.save_path = ''
-        self.vocab = self.read_data(data_file)
+        self.vocab = self.parse_sentences(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        self.train_data, self.valid_data, self.test_data = self.parse_sentences(data_idx, partition)  
+        self.train_data, self.valid_data, self.test_data = self.split_dataset(data_idx, partition)  
         self.save_vocab()
 
-    def parse_sentences(self, raw_sentences, partition):
-        nonempty = [s for s in raw_sentences if len(s) > 0] # nonempty sentences are kept
+    def parse_sentences(self, data_file):
+        raw_text = open(data_file, encoding="utf8").read()
+        raw_sentences = [self.parse_tokens(sentence) for sentence in raw_text.split("\n")]
+        return raw_sentences
+
+    def parse_tokens(self, raw_sentence):
+        s = [w.replace('\x01', ' ') for w in raw_sentence.split()]
+        return [w for w in s if len(w) > 0] # nonempty words are kept
+
+    def split_dataset(self, sentences, partition):
+        nonempty = [s for s in sentences if len(s) > 0] # nonempty sentences are kept
         len_all = len(nonempty)
         len_train = int(partition[0] * len_all)
         len_valid = int(partition[1] * len_all)
         return nonempty[:len_train], nonempty[len_train:len_train+len_valid], nonempty[len_train+len_valid:]
-
-    def read_data(self, data_file):
-        data = list()
-        with open(data_file) as f:
-            lines = f.read().split('\n')
-            for line in lines:
-                data_line = [x for x in line.split(' ') if x not in Dataset.END]
-                data.append(data_line)
-        return data
 
     def sentence(self, text):
         return " ".join([self.idx2word[t] for t in text])
