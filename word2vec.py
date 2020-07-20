@@ -20,7 +20,7 @@ import numpy as np
 
 class word2vec:
     def __init__(self, input_file, model_name, vocabulary_size=100000,
-                 embedding_dim=200, epoch=10, batch_size=256, windows_size=5, neg_sample_size=10):
+                 embedding_dim=200, epoch=10, batch_size=256, windows_size=2, neg_sample_size=10):
         self.model_name = model_name
         if DEBUG:
             self.data = Dataset(batch_size=batch_size, window_size=windows_size)
