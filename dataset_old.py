@@ -15,7 +15,7 @@ class Dataset(object):
         self.vocab_size_limit = vocab_size_limit
         self.save_path = save_path
         self.vocab = self.parse_sentences(data_file)
-        data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size_limit)
+        data_idx = self.build_dataset(self.vocab, self.vocab_size_limit)
         self.train_data, self.valid_data, self.test_data = self.split_dataset(data_idx, partition)  
         self.save_vocab()
 
@@ -38,6 +38,9 @@ class Dataset(object):
     def sentence(self, text):
         return " ".join([self.idx2word[t] for t in text])
 
+    def get_index(self, word):
+        return self.word2idx.get(word, 0)
+
     def build_dataset(self, words_raw, n_words):
         words = flatten2d(words_raw)
 
@@ -49,26 +52,15 @@ class Dataset(object):
         unk_cnt = token_length - sum(word_cntdict.values()) # how many '<UNK>' tokens included
         word_cntdict["<UNK>"] = unk_cnt
 
+        self.count = list(zip(word_cntdict.keys(), word_cntdict.values()))
+
         #build dictionary，the higher word frequency is, the top word is
         vocab = list(word_cntdict.keys())
-        dictionary = {w: i for i, w in enumerate(vocab)}
+        self.word2idx = {w: i for i, w in enumerate(vocab)}
+        self.idx2word = dict(zip(self.word2idx.values(), self.word2idx.keys()))
 
-        data = list()
-
-        #dataset labelled
-        for words in words_raw:
-            tmp_index = list()
-            for word in words:
-                if word in dictionary:
-                    index = dictionary[word]
-                else:
-                    index = 0
-                tmp_index.append(index)
-            data.append(tmp_index)
-
-        count = list(zip(word_cntdict.keys(), word_cntdict.values()))
-        reversed_dict = dict(zip(dictionary.values(), dictionary.keys()))
-        return data, count, reversed_dict
+        data = [list(map(self.get_index, line)) for line in words_raw]   
+        return data
 
     #high frequency word subsampled
     #randomly discard common words, and keep the same frequency ranking
