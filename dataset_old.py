@@ -10,7 +10,9 @@ from utils import *
 
 class Dataset(object):
     END = ['eoood']
-    def __init__(self, data_file, vocab_size, window_size, neg_sample_size, batch_size):
+    def __init__(self, data_file, vocab_size, window_size, neg_sample_size, batch_size, partition=[.8, .1, .1]):
+        if sum(partition) != 1:
+            error("partitions sum not correct")
         self.vocab_size = vocab_size
         self.save_path = ''
         self.window_size = window_size
@@ -19,9 +21,16 @@ class Dataset(object):
         self.batch_size = batch_size
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        self.train_data = data_idx 
+        self.train_data, self.valid_data, self.test_data = self.parse_sentences(data_idx, partition)  
         self.sample_table = self.init_sample_table()
         self.save_vocab()
+
+    def parse_sentences(self, raw_sentences, partition):
+        nonempty = [s for s in raw_sentences if len(s) > 0] # nonempty sentences are kept
+        len_all = len(nonempty)
+        len_train = int(partition[0] * len_all)
+        len_valid = int(partition[1] * len_all)
+        return nonempty[:len_train], nonempty[len_train:len_train+len_valid], nonempty[len_train+len_valid:]
 
     def read_data(self, data_file):
         data = list()
