@@ -10,19 +10,14 @@ from utils import *
 
 class Dataset(object):
     END = ['eoood']
-    def __init__(self, data_file, vocab_size, window_size, neg_sample_size, batch_size, partition=[.8, .1, .1]):
+    def __init__(self, data_file, vocab_size, partition=[.8, .1, .1]):
         if sum(partition) != 1:
             error("partitions sum not correct")
         self.vocab_size = vocab_size
         self.save_path = ''
-        self.window_size = window_size
-        self.neg_sample_size = neg_sample_size
-        self.span = 2 * window_size + 1
-        self.batch_size = batch_size
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
         self.train_data, self.valid_data, self.test_data = self.parse_sentences(data_idx, partition)  
-        self.sample_table = self.init_sample_table()
         self.save_vocab()
 
     def parse_sentences(self, raw_sentences, partition):
@@ -96,8 +91,29 @@ class Dataset(object):
             subsampled_data.append(subsampled_line)
         return subsampled_data
 
+    def save_vocab(self):
+        with open(os.path.join(self.save_path, 'vocab.txt'), 'w') as f:
+            for i in xrange(len(self.count)):
+                vocab_word = self.idx2word[i]
+                f.write('%s %d\n' % (vocab_word, self.count[i][1]))
+
+
+class Sampler:
+    def __init__(self, dataset, window_size, neg_sample_size, batch_size):
+        self.dataset = dataset
+
+        self.window_size = window_size
+        self.neg_sample_size = neg_sample_size
+        self.span = 2 * window_size + 1
+        self.batch_size = batch_size
+
+        self.sample_table = self.init_sample_table()
+
+    def __call__(self, mode="tests", **kwargs):
+        return self.generate_batch(mode, **kwargs)
+
     def init_sample_table(self):
-        count = [ c[1] for c in self.count]
+        count = [ c[1] for c in self.dataset.count]
         pow_freq = np.array(count) ** 0.75
         pow_sum = np.sum(pow_freq)
         ratio = pow_freq / pow_sum
@@ -110,14 +126,8 @@ class Dataset(object):
             sample_table += [idx] * int(x)
         return np.array(sample_table)
 
-    def save_vocab(self):
-        with open(os.path.join(self.save_path, 'vocab.txt'), 'w') as f:
-            for i in xrange(len(self.count)):
-                vocab_word = self.idx2word[i]
-                f.write('%s %d\n' % (vocab_word, self.count[i][1]))
-
-    def generate_batch(self):
-        data = self.train_data
+    def generate_batch(self, mode="tests"):
+        data = self.dataset.train_data
 
         pos_u = list()
         pos_v = list()
@@ -137,11 +147,4 @@ class Dataset(object):
                 pos_u = list()
                 pos_v = list()
 
-
-class Sampler:
-    def __init__(self, dataset):
-        pass
-
-    def __call__(self, mode="tests", **kwargs):
-        return self.sampler(mode, **kwargs)
 

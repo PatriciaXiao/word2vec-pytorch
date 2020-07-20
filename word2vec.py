@@ -12,7 +12,7 @@ DEBUG = False
 if DEBUG:
     from dataset import Dataset
 else:
-    from dataset_old import Dataset
+    from dataset_old import Dataset, Sampler
 
 import random
 import numpy as np
@@ -23,9 +23,10 @@ class word2vec:
                  embedding_dim=200, epoch=10, batch_size=256, windows_size=2, neg_sample_size=10):
         self.model_name = model_name
         if DEBUG:
-            self.data = Dataset(batch_size=batch_size, window_size=windows_size)
+            self.data_loader = Dataset(batch_size=batch_size, window_size=windows_size)
         else:
-            self.data = Dataset(input_file, vocabulary_size, window_size=windows_size, neg_sample_size=neg_sample_size, batch_size=batch_size)
+            self.data = Dataset(input_file, vocabulary_size)
+            self.data_loader = Sampler(self.data, window_size=windows_size, neg_sample_size=neg_sample_size, batch_size=batch_size)
         self.vocabulary_size = vocabulary_size
         self.embedding_dim = embedding_dim
         self.epoch = epoch
@@ -48,7 +49,7 @@ class word2vec:
             batch_num = 0
             batch_new = 0
 
-            for data in self.data.generate_batch():
+            for data in self.data_loader():
                 pos_u, pos_v, neg_v = data
 
                 pos_u = torch.LongTensor(pos_u)
