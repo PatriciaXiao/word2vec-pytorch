@@ -35,7 +35,7 @@ class Dataset(object):
         len_valid = int(partition[1] * len_all)
         return nonempty[:len_train], nonempty[len_train:len_train+len_valid], nonempty[len_train+len_valid:]
 
-    def sentence(self, text):
+    def idx2sentence(self, text):
         return " ".join([self.idx2word[t] for t in text])
 
     def get_index(self, word):
