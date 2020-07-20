@@ -138,4 +138,10 @@ class Dataset(object):
                 pos_v = list()
 
 
+class Sampler:
+    def __init__(self, dataset):
+        pass
+
+    def __call__(self, mode="tests", **kwargs):
+        return self.sampler(mode, **kwargs)
 
