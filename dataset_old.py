@@ -4,7 +4,6 @@ import math
 import os
 import random
 import time
-from six.moves import xrange
 
 from utils import *
 
@@ -93,7 +92,7 @@ class Dataset(object):
 
     def save_vocab(self):
         with open(os.path.join(self.save_path, 'vocab.txt'), 'w') as f:
-            for i in xrange(len(self.count)):
+            for i in range(len(self.count)):
                 vocab_word = self.idx2word[i]
                 f.write('%s %d\n' % (vocab_word, self.count[i][1]))
 
