@@ -121,9 +121,9 @@ class Dataset(object):
 
         pos_u = list()
         pos_v = list()
-        for row_index in range(len(data)):
-            for col_index in range(len(data[row_index]) - self.span):
-                data_buffer = data[row_index][col_index : col_index + self.span]
+        for i, row in enumerate(data):
+            for col_index in range(len(row) - self.span):
+                data_buffer = row[col_index : col_index + self.span]
                 context = data_buffer[:self.window_size] + data_buffer[self.window_size+1:]
                 target = data_buffer[self.window_size]
 
@@ -131,7 +131,7 @@ class Dataset(object):
                 pos_v.extend(context)
 
             tmp_data_size = len(pos_u)
-            if (row_index + 1) % self.batch_size == 0 and tmp_data_size > 0:
+            if (i + 1) % self.batch_size == 0 and tmp_data_size > 0:
                 neg_v = np.random.choice(self.sample_table, size=(tmp_data_size, self.neg_sample_size))
                 yield np.array(pos_u), np.array(pos_v), neg_v
                 pos_u = list()
