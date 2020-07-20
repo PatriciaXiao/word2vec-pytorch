@@ -19,7 +19,7 @@ class Dataset(object):
         self.batch_size = batch_size
         self.vocab = self.read_data(data_file)
         data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
-        self.train_data = data_idx
+        self.train_data = data_idx 
         self.sample_table = self.init_sample_table()
         self.save_vocab()
 
