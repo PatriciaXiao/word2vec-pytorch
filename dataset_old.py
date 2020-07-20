@@ -9,13 +9,13 @@ from utils import *
 
 class Dataset(object):
     END = ['eoood']
-    def __init__(self, data_file, vocab_size, partition=[.8, .1, .1]):
+    def __init__(self, data_file, vocab_size_limit, partition=[.8, .1, .1], save_path = ''):
         if sum(partition) != 1:
             error("partitions sum not correct")
-        self.vocab_size = vocab_size
-        self.save_path = ''
+        self.vocab_size_limit = vocab_size_limit
+        self.save_path = save_path
         self.vocab = self.parse_sentences(data_file)
-        data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size)
+        data_idx, self.count, self.idx2word = self.build_dataset(self.vocab, self.vocab_size_limit)
         self.train_data, self.valid_data, self.test_data = self.split_dataset(data_idx, partition)  
         self.save_vocab()
 
