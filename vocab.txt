@@ -1,4 +1,3 @@
-UNK 0
 of 4
 a 4
 the 3
@@ -48,3 +47,4 @@ computer 1
 with 1
 our 1
 spells. 1
+<UNK> 0

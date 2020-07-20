@@ -40,16 +40,20 @@ class Dataset(object):
 
     def build_dataset(self, words_raw, n_words):
         words = flatten2d(words_raw)
-        count = [['UNK', -1]]
-        count.extend(collections.Counter(words).most_common(n_words - 1))
-        dictionary = dict()
+
+        counter = collections.Counter(words).most_common(n_words - 1)
+        word_cntdict = dict(counter)
+
+        token_length = len(words)
+        frequent_words = list(word_cntdict.keys())
+        unk_cnt = token_length - sum(word_cntdict.values()) # how many '<UNK>' tokens included
+        word_cntdict["<UNK>"] = unk_cnt
 
         #build dictionary，the higher word frequency is, the top word is
-        for word, _ in count:
-            dictionary[word] = len(dictionary)
+        vocab = list(word_cntdict.keys())
+        dictionary = {w: i for i, w in enumerate(vocab)}
 
         data = list()
-        unk_count = 0
 
         #dataset labelled
         for words in words_raw:
@@ -59,12 +63,10 @@ class Dataset(object):
                     index = dictionary[word]
                 else:
                     index = 0
-                    unk_count += 1
                 tmp_index.append(index)
             data.append(tmp_index)
 
-
-        count[0][1] = unk_count
+        count = list(zip(word_cntdict.keys(), word_cntdict.values()))
         reversed_dict = dict(zip(dictionary.values(), dictionary.keys()))
         return data, count, reversed_dict
 
