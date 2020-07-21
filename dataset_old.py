@@ -22,6 +22,7 @@ class Dataset(object):
     def parse_sentences(self, data_file):
         raw_text = open(data_file, encoding="utf8").read()
         raw_sentences = [self.parse_tokens(sentence) for sentence in raw_text.split("\n")]
+        random.shuffle(raw_sentences)
         return raw_sentences
 
     def parse_tokens(self, raw_sentence):
