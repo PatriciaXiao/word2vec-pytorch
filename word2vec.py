@@ -62,7 +62,7 @@ class word2vec:
                     neg_v = neg_v.cuda()
 
                 optimizer.zero_grad()
-                loss = model(pos_u, pos_v, neg_v, self.batch_size)
+                loss = model(pos_u, pos_v, neg_v) / self.batch_size
                 # loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
                 loss.backward()
                 optimizer.step()
