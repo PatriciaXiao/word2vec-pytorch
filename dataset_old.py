@@ -9,7 +9,7 @@ from utils import *
 
 class Dataset(object):
     END = ['eoood']
-    def __init__(self, data_file, vocab_size_limit, partition=[.8, .1, .1], save_path = ''):
+    def __init__(self, data_file, vocab_size_limit, partition=[.8, .1, .1], sentence_labels=(-1,1), save_path = ''):
         if sum(partition) != 1:
             error("partitions sum not correct")
         self.vocab_size_limit = vocab_size_limit
