@@ -75,7 +75,7 @@ class word2vec:
                     start = time.time()
                 batch_num += 1
 
-        model.save_embeddings(self.data.idx2word, 'word_embdding.txt', torch.cuda.is_available())
+        model.save_embeddings(self.data.idx2word, 'word_embdding.txt')
 
 
 if __name__ == '__main__':

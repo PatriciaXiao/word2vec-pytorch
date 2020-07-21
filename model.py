@@ -78,13 +78,13 @@ class SkipGram(nn.Module):
         neg_output = F.logsigmoid(-1*neg_score).squeeze() #1-sigma(x)=sigma(-x)
 
         cost = pos_output + neg_output
-        
+
         n_sample_pairs = pos_embed_v.shape[0] # this is necessary
         return -1 * cost.sum() / n_sample_pairs
 
 
-    def save_embeddings(self, id2word, file_name, use_cuda):
-        if use_cuda:
+    def save_embeddings(self, id2word, file_name):
+        if torch.cuda.is_available():
             embedding = self.embeddings.get_embedding().weight.cpu().data.numpy()
         else:
             embedding = self.embeddings.get_embedding().weight.data.numpy()
