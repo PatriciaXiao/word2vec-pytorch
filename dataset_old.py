@@ -18,7 +18,7 @@ class Dataset(object):
         self.save_path = save_path
         self.vocab, self.labels = self.parse_sentences(data_files, sentence_labels)
         data_idx = self.build_dataset(self.vocab, self.vocab_size_limit)
-        self.train_data, self.valid_data, self.test_data = self.split_dataset(data_idx, partition)  
+        (self.train_data, self.valid_data, self.test_data), (self.train_label, self.valid_label, self.test_label) = self.split_dataset(data_idx, self.labels, partition)
         self.save_vocab()
 
     def parse_sentences(self, data_files, sentence_labels):
@@ -37,11 +37,12 @@ class Dataset(object):
         s = [w.replace('\x01', ' ') for w in raw_sentence.split()]
         return [w for w in s if len(w) > 0] # nonempty words are kept
 
-    def split_dataset(self, sentences, partition):
+    def split_dataset(self, sentences, labels, partition):
         len_all = len(sentences)
         len_train = int(partition[0] * len_all)
         len_valid = int(partition[1] * len_all)
-        return sentences[:len_train], sentences[len_train:len_train+len_valid], sentences[len_train+len_valid:]
+        return (sentences[:len_train], sentences[len_train:len_train+len_valid], sentences[len_train+len_valid:]), \
+               (labels[:len_train], labels[len_train:len_train+len_valid], labels[len_train+len_valid:]) # data, and labels
 
     def idx2sentence(self, text):
         return " ".join([self.idx2word[t] for t in text])

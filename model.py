@@ -68,18 +68,18 @@ class SkipGram(nn.Module):
         self.embedding_dim = embedding_dim
 
     def forward(self, u_pos, v_pos, v_neg):
-        n_sample_pairs = pos_embed_v.shape[0]
         embed_u = self.u_embeddings(u_pos)
         pos_embed_v = self.v_embeddings(v_pos)
         pos_score = torch.sum(torch.mul(embed_u, pos_embed_v), dim = 1)
         pos_output = F.logsigmoid(pos_score).squeeze()
-
         neg_embed_v = self.v_embeddings(v_neg)
         neg_score = torch.bmm(neg_embed_v, embed_u.unsqueeze(2)).squeeze()
         neg_score = torch.sum(neg_score, dim = -1)
         neg_output = F.logsigmoid(-1*neg_score).squeeze() #1-sigma(x)=sigma(-x)
 
         cost = pos_output + neg_output
+        
+        n_sample_pairs = pos_embed_v.shape[0] # this is necessary
         return -1 * cost.sum() / n_sample_pairs
 
 
