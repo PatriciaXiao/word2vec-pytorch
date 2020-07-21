@@ -9,32 +9,39 @@ from utils import *
 
 class Dataset(object):
     END = ['eoood']
-    def __init__(self, data_file, vocab_size_limit, partition=[.8, .1, .1], sentence_labels=(-1,1), save_path = ''):
+    def __init__(self, data_files, vocab_size_limit, partition=[.8, .1, .1], sentence_labels=(-1,1), save_path = ''):
         if sum(partition) != 1:
             error("partitions sum not correct")
+        if len(data_files) != len(sentence_labels):
+            error("sentence labels not properly defined: {} and {} not match".format(data_files, sentence_labels))
         self.vocab_size_limit = vocab_size_limit
         self.save_path = save_path
-        self.vocab = self.parse_sentences(data_file)
+        self.vocab, self.labels = self.parse_sentences(data_files, sentence_labels)
         data_idx = self.build_dataset(self.vocab, self.vocab_size_limit)
         self.train_data, self.valid_data, self.test_data = self.split_dataset(data_idx, partition)  
         self.save_vocab()
 
-    def parse_sentences(self, data_file):
-        raw_text = open(data_file, encoding="utf8").read()
-        raw_sentences = [self.parse_tokens(sentence) for sentence in raw_text.split("\n")]
-        random.shuffle(raw_sentences)
-        return raw_sentences
+    def parse_sentences(self, data_files, sentence_labels):
+        data = list()
+        for data_file, label in zip(data_files, sentence_labels):
+            raw_text = open(data_file, encoding="utf8").read()
+            raw_lines = [(self.parse_tokens(sentence), label) for sentence in raw_text.split("\n")]
+            nonempty = [s for s in raw_lines if len(s) > 0] # nonempty sentences are kept
+            data.extend(nonempty)
+        random.shuffle(data)
+        unzipped_object = zip(*data)
+        raw_sentences, labels = list(unzipped_object)
+        return raw_sentences, labels
 
     def parse_tokens(self, raw_sentence):
         s = [w.replace('\x01', ' ') for w in raw_sentence.split()]
         return [w for w in s if len(w) > 0] # nonempty words are kept
 
     def split_dataset(self, sentences, partition):
-        nonempty = [s for s in sentences if len(s) > 0] # nonempty sentences are kept
-        len_all = len(nonempty)
+        len_all = len(sentences)
         len_train = int(partition[0] * len_all)
         len_valid = int(partition[1] * len_all)
-        return nonempty[:len_train], nonempty[len_train:len_train+len_valid], nonempty[len_train+len_valid:]
+        return sentences[:len_train], sentences[len_train:len_train+len_valid], sentences[len_train+len_valid:]
 
     def idx2sentence(self, text):
         return " ".join([self.idx2word[t] for t in text])

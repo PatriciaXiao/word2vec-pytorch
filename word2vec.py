@@ -25,7 +25,7 @@ class word2vec:
         if DEBUG:
             self.data_loader = Dataset(batch_size=batch_size, window_size=windows_size)
         else:
-            self.data = Dataset(input_file, vocabulary_size)
+            self.data = Dataset([input_file, input_file], vocabulary_size)
             self.data_loader = Sampler(self.data, window_size=windows_size, neg_sample_size=neg_sample_size, batch_size=batch_size)
         self.vocabulary_size = vocabulary_size
         self.embedding_dim = embedding_dim
