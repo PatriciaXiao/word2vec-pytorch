@@ -134,6 +134,8 @@ class Sampler:
 
         pos_u = list()
         pos_v = list()
+        sentence = list()
+        sentence_labels = list()
         for i, (row, polarity) in enumerate(zip(data, label)):
             for col_index in range(len(row) - self.span):
                 data_buffer = row[col_index : col_index + self.span]
@@ -144,10 +146,16 @@ class Sampler:
                 pos_v.extend(context)
 
             tmp_data_size = len(pos_u)
+
+            sentence.append(np.array(row))
+            sentence_labels.append(polarity)
+
             if (i + 1) % self.batch_size == 0 and tmp_data_size > 0:
                 neg_v = np.random.choice(self.sample_table, size=(tmp_data_size, self.neg_sample_size))
-                yield np.array(pos_u), np.array(pos_v), neg_v
+                yield (np.array(pos_u), np.array(pos_v), neg_v), (sentence, sentence_labels)
                 pos_u = list()
                 pos_v = list()
+                sentence = list()
+                sentence_labels = list()
 
 

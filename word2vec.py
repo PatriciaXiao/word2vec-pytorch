@@ -49,8 +49,8 @@ class word2vec:
             batch_num = 0
             batch_new = 0
 
-            for data in self.data_loader():
-                pos_u, pos_v, neg_v = data
+            for data_word, data_sentence in self.data_loader():
+                pos_u, pos_v, neg_v = data_word
 
                 pos_u = torch.LongTensor(pos_u)
                 pos_v = torch.LongTensor(pos_v)
