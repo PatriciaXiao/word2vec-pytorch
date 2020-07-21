@@ -130,10 +130,11 @@ class Sampler:
 
     def generate_batch(self, mode="tests"):
         data = self.dataset.train_data
+        label = self.dataset.train_label
 
         pos_u = list()
         pos_v = list()
-        for i, row in enumerate(data):
+        for i, (row, polarity) in enumerate(zip(data, label)):
             for col_index in range(len(row) - self.span):
                 data_buffer = row[col_index : col_index + self.span]
                 context = data_buffer[:self.window_size] + data_buffer[self.window_size+1:]
