@@ -50,19 +50,9 @@ class word2vec:
             batch_new = 0
 
             for data_word, data_sentence in self.data_loader():
-                pos_u, pos_v, neg_v = data_word
-
-                pos_u = torch.LongTensor(pos_u)
-                pos_v = torch.LongTensor(pos_v)
-                neg_v = torch.LongTensor(neg_v)
-
-                if torch.cuda.is_available():
-                    pos_u = pos_u.cuda()
-                    pos_v = pos_v.cuda()
-                    neg_v = neg_v.cuda()
 
                 optimizer.zero_grad()
-                loss = model(pos_u, pos_v, neg_v) / self.batch_size
+                loss = model(data_word) / self.batch_size
                 # loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
                 loss.backward()
                 optimizer.step()
