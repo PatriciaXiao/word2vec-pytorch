@@ -68,16 +68,16 @@ class SkipGram(nn.Module):
         self.embedding_dim = embedding_dim
 
     def forward(self, data_word):
-        pos_u, pos_v, neg_v = data_word
+        u_pos, v_pos, v_neg = data_word
 
-        pos_u = torch.LongTensor(pos_u)
-        pos_v = torch.LongTensor(pos_v)
-        neg_v = torch.LongTensor(neg_v)
+        u_pos = torch.LongTensor(u_pos)
+        v_pos = torch.LongTensor(v_pos)
+        v_neg = torch.LongTensor(v_neg)
 
         if torch.cuda.is_available():
-            pos_u = pos_u.cuda()
-            pos_v = pos_v.cuda()
-            neg_v = neg_v.cuda()
+            u_pos = u_pos.cuda()
+            v_pos = v_pos.cuda()
+            v_neg = v_neg.cuda()
 
         embed_u = self.u_embeddings(u_pos)
         pos_embed_v = self.v_embeddings(v_pos)
