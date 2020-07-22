@@ -67,7 +67,7 @@ class SkipGram(nn.Module):
         self.v_embeddings = self.embeddings.context
         self.embedding_dim = embedding_dim
 
-    def forward(self, word_word):
+    def forward(self, data_word):
         pos_u, pos_v, neg_v = data_word
 
         pos_u = torch.LongTensor(pos_u)
