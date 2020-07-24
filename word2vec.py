@@ -17,6 +17,7 @@ else:
 import random
 import numpy as np
 
+import matplotlib.pyplot as plt
 
 class word2vec:
     def __init__(self, input_file, model_name, vocabulary_size=100000,
@@ -34,8 +35,16 @@ class word2vec:
         self.windows_size = windows_size
         self.neg_sample_size = neg_sample_size
 
+    def showPlot(self, points, title):
+        plt.figure()
+        fig, ax = plt.subplots()
+        plt.plot(points)
+        plt.show()
+
     def train(self, report=True):
         model = SkipGram(self.vocabulary_size, self.embedding_dim)
+
+        loss_list = list()
 
         if torch.cuda.is_available():
             model.cuda()
@@ -54,6 +63,7 @@ class word2vec:
                 optimizer.zero_grad()
                 loss = model(data_word) / self.batch_size
                 # loss = model(pos_u, pos_v, neg_v, self.batch_size, target, contex, labels)
+                loss_list.append(loss)
                 loss.backward()
                 optimizer.step()
 
@@ -65,6 +75,7 @@ class word2vec:
                     start = time.time()
                 batch_num += 1
 
+        self.showPlot(loss_list, 'Losses')
         model.save_embeddings(self.data.idx2word, 'word_embdding.txt')
 
 
